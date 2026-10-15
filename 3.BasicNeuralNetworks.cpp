@@ -1,12 +1,11 @@
 #include <bits/stdc++.h>
+#include <fstream>
 using namespace std;
+#include "headers/network.h"
+
 double relu(double z){
     return max(0.0, z);
 }
-struct LayerOutput {
-    vector<vector<double>> Z;
-    vector<vector<double>> A;
-};
 vector<double> softmax(vector<double> z, int units){
     double sum = 0;
     vector<double> out(units);
@@ -33,10 +32,10 @@ double relu_derivative(double z){
     return z > 0 ? 1 : 0;
 }
 // shit's Traumatic
-void backward(const vector<vector<double>>& X, const vector<double>& y, const vector<vector<double>>& Z1, 
-    const vector<vector<double>>& A1, const vector<vector<double>>& Z2, const vector<vector<double>>& A2, 
-    const vector<vector<double>>& A3, vector<vector<double>>& W1, vector<double>& b1, vector<vector<double>>& W2, 
-    vector<double>& b2, vector<vector<double>>& W3, vector<double>& b3, double alpha){
+void backward(vector<vector<double>>& X, vector<double>& y, vector<vector<double>>& Z1, vector<vector<double>>& A1,
+    vector<vector<double>>& Z2, vector<vector<double>>& A2, vector<vector<double>>& A3, vector<vector<double>>& W1, 
+    vector<double>& b1, vector<vector<double>>& W2, vector<double>& b2, vector<vector<double>>& W3, vector<double>& b3, 
+    double alpha){
     int m = y.size();
     // dZ3 shape: (3 x 12) -> dZ3 = A3 - Y_one_hot
     vector<vector<double>> dZ3(3, vector<double>(m));
@@ -180,10 +179,39 @@ LayerOutput Dense(vector<vector<double>> &a, int units, string act, vector<vecto
 }
 
 
+vector<vector<double>> predict(vector<vector<double>>& X_new, vector<vector<vector<double>>>& W, vector<vector<double>>& b){
+    // running new data through our trained weights and biases!
+    LayerOutput l1 = Dense(X_new, 25, "relu", W[0], b[0]);
+    LayerOutput l2 = Dense(l1.A, 15, "relu", W[1], b[1]);
+    LayerOutput l3 = Dense(l2.A, 3, "softmax", W[2], b[2]);
+    return l3.A;
+}
+
+void save_weights(const string& filename, const vector<vector<vector<double>>>& W, const vector<vector<double>>& b) {
+    ofstream outFile(filename);
+    outFile << W.size() << "\n";
+    for (size_t l = 0; l < W.size(); l++) {
+        outFile << W[l].size() << " " << W[l][0].size() << "\n";
+        for (size_t j = 0; j < W[l].size(); j++) {
+            for (size_t k = 0; k < W[l][j].size(); k++) outFile << W[l][j][k] << " ";
+            outFile << "\n";
+        }
+    }
+    outFile << b.size() << "\n";
+    for (size_t l = 0; l < b.size(); l++) {
+        outFile << b[l].size() << "\n";
+        for (size_t j = 0; j < b[l].size(); j++) outFile << b[l][j] << " ";
+        outFile << "\n";
+    }
+    outFile.close();
+    cout << "Weights saved to " << filename << endl;
+}
+
+#ifndef PREDICT_MODE
 int main(){
     vector<vector<double>> x = {{-0.85, -0.71, -0.93, -0.62, 0.12, 0.28, -0.05, 0.33, 0.75, 0.89, 0.61, 0.82},
                                 {0.72, 0.88, 0.55, 0.79, -0.91, -0.75, -0.88, -0.61, 0.68, 0.52, 0.83, 0.71}};
-    vector<double> y = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
+    vector<double> y = {0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2};
     vector<int> layer_sizes = {2, 25, 15, 3};
     int total_layers = layer_sizes.size() - 1;
     vector<vector<vector<double>>> W(total_layers);
@@ -202,8 +230,8 @@ int main(){
             b[i][j] = dist(gen);
         }
     }
-    int epochs = 1000;
-    double alpha = 0.01;
+    int epochs = 5000;
+    double alpha = 0.02;
     cout << "Starting Training Loops..." << endl;
     vector<vector<double>> A3;
     for(int epoch = 0; epoch < epochs; epoch++){
@@ -223,7 +251,7 @@ int main(){
         }
         backward(x, y, Z1, A1, Z2, A2, A3, W[0], b[0], W[1], b[1], W[2], b[2], alpha);
     }
-
+    save_weights("3.Weights.txt", W, b);
 
 
     int correct_predictions = 0;
@@ -254,4 +282,5 @@ int main(){
     cout << "\nFinal Accuracy: " << final_accuracy << "% (" 
     << correct_predictions << "/" << total_samples << " correct)" << endl;
 }
+#endif
 // ya i cried! 4 laps 55 minutes each!! and it works 
