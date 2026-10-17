@@ -1,9 +1,9 @@
 #include <bits/stdc++.h>
 #include <fstream>
 using namespace std;
-#include "headers/network.h"
+#include "NeuralNetworks.h"
 
-
+// g++ Predict.cpp NeuralNetworks.cpp -o Predict.exe && ./Predict.exe
 bool load_weights(const string& filename, vector<vector<vector<double>>>& W, vector<vector<double>>& b) {
     ifstream inFile(filename);
     size_t num_layers; inFile >> num_layers; W.resize(num_layers);
@@ -37,7 +37,7 @@ bool load_weights(const string& filename, vector<vector<vector<double>>>& W, vec
 int main(){
     vector<vector<vector<double>>> W;
     vector<vector<double>> b;
-    if (!load_weights("3.Weights.txt", W, b)) { 
+    if (!load_weights("weights", W, b)) { 
         cout << "Execution stopped cleanly to prevent vector crash." << endl;
         return 0; 
     }
