@@ -20,13 +20,13 @@ public:
     }
 
     // Performs a single optimization step given parameters and their gradients
-    void step(std::vector<double>& params, const std::vector<double>& grads) {
+    void step(vector<double>& params, const vector<double>& grads) {
         if (params.size() != grads.size() || params.size() != m.size()) {
             throw std::invalid_argument("Vector sizes do not match optimizer parameter count.");
         }
         t++;
-        double bias_correction1 = 1.0 - std::pow(beta1, t);
-        double bias_correction2 = 1.0 - std::pow(beta2, t);
+        double bias_correction1 = 1.0 - pow(beta1, t);
+        double bias_correction2 = 1.0 - pow(beta2, t);
         for (size_t i = 0; i < params.size(); ++i) {
             // Update biased first moment estimate
             m[i] = beta1 * m[i] + (1.0 - beta1) * grads[i];
@@ -38,7 +38,7 @@ public:
             double m_hat = m[i] / bias_correction1;
             // Compute bias-corrected second raw moment estimate
             double v_hat = v[i] / bias_correction2;
-            params[i] -= (alpha / (std::sqrt(v_hat) + epsilon)) * m_hat;
+            params[i] -= (alpha / (sqrt(v_hat) + epsilon)) * m_hat;
         }
     }
     void reset() {
@@ -57,7 +57,7 @@ int main() {
     for (int epoch = 1; epoch <= 100; ++epoch) {
         // Analytical gradients of f(x, y) = x^2 + 3y^2
         // df/dx = 2x,  df/dy = 6y
-        std::vector<double> gradients = {
+        vector<double> gradients = {
             2.0 * parameters[0],
             6.0 * parameters[1]
         };
@@ -65,7 +65,7 @@ int main() {
         optimizer.step(parameters, gradients);
 
         if (epoch % 10 == 0) {
-            double loss = std::pow(parameters[0], 2) + 3.0 * std::pow(parameters[1], 2);
+            double loss = std::pow(parameters[0], 2) + 3.0 * pow(parameters[1], 2);
             std::cout << "Epoch " << epoch << " | Params: (" << parameters[0] << ", " << parameters[1] << ") | Loss: " << loss << "\n";
         }
     }
